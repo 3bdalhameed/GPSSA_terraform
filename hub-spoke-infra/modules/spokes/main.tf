@@ -53,7 +53,7 @@ resource "azurerm_route_table" "spoke" {
   name                          = "rt-${each.key}-pe"
   location                      = var.location
   resource_group_name           = var.resource_group_name
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
   tags                          = var.tags
 
   route {

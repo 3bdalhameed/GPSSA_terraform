@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────────
+# terraform.tfvars.example
+# Copy to terraform.tfvars and fill in your values before deploying.
+# ─────────────────────────────────────────────────────────────────
+
+resource_group_name = "rg-hub-spoke-infra"
+location            = "uaenorth"
+
+tags = {
+  project    = "hub-spoke-gpssa"
+  managed_by = "terraform"
+  owner      = "infra-team"
+}
+
+# Hub VNet
+hub_vnet_cidr            = "10.0.0.0/16"
+hub_firewall_subnet_cidr = "10.0.0.0/26"
+hub_gateway_subnet_cidr  = "10.0.1.0/27"
+
+# Spoke environments
+spokes = {
+  prod = {
+    vnet_cidr       = "10.1.0.0/16"
+    aks_subnet_cidr = "10.1.0.0/22"
+  }
+  stg = {
+    vnet_cidr       = "10.2.0.0/16"
+    aks_subnet_cidr = "10.2.0.0/22"
+  }
+  dev = {
+    vnet_cidr       = "10.3.0.0/16"
+    aks_subnet_cidr = "10.3.0.0/22"
+  }
+}
+
+# GPSSA on-premises — update with real values from GPSSA team
+gpssa_vpn_public_ip = "1.2.3.4"         # <── Replace with actual GPSSA public IP
+gpssa_prod_cidr     = "192.168.10.0/24"
+gpssa_stg_cidr      = "192.168.20.0/24"
+gpssa_dev_cidr      = "192.168.30.0/24"
+
+# Recommended: set via environment variable instead of storing here
+# export TF_VAR_vpn_shared_key="your-secret-psk"
+# vpn_shared_key = "changeme"
+
+# AKS
+kubernetes_version = "1.29"
+
+aks_node_counts = {
+  prod = 3
+  stg  = 2
+  dev  = 1
+}
+
+aks_vm_sizes = {
+  prod = "Standard_D4s_v5"
+  stg  = "Standard_D2s_v5"
+  dev  = "Standard_B2s"
+}

@@ -19,6 +19,27 @@ module "network" {
   environment = var.environment
   location    = var.location
   vnet_cidr   = var.vnet_cidr
+
+  enable_hub_peering      = var.enable_hub_peering
+  hub_vnet_id             = var.hub_vnet_id
+  hub_vnet_name           = var.hub_vnet_name
+  hub_resource_group_name = var.hub_resource_group_name
+  use_remote_gateways     = var.use_remote_gateways
+  enable_firewall_routing = var.enable_firewall_routing
+  firewall_private_ip     = var.deploy_firewall ? module.firewall[0].firewall_private_ip : var.firewall_private_ip
+}
+
+module "firewall" {
+  source = "../../shared/modules/firewall"
+  count  = var.deploy_firewall ? 1 : 0
+
+  prefix              = var.prefix
+  project             = var.project
+  environment         = var.environment
+  location            = var.location
+  resource_group_name = module.network.resource_group_name
+  firewall_subnet_id  = module.network.subnet_firewall_id
+  sku_tier            = var.firewall_sku_tier
 }
 
 module "aks" {

@@ -22,3 +22,13 @@ output "storage_account_name" {
   value       = module.storage.storage_account_name
   description = "Storage account name"
 }
+
+output "firewall_private_ip" {
+  value       = try(module.firewall[0].firewall_private_ip, null)
+  description = "Private IP of the deployed firewall (null if not deployed)"
+}
+
+output "firewall_public_ip" {
+  value       = try(module.firewall[0].firewall_public_ip, null)
+  description = "Public IP of the deployed firewall (null if not deployed)"
+}

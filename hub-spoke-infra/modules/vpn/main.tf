@@ -60,4 +60,15 @@ resource "azurerm_virtual_network_gateway_connection" "gpssa" {
   local_network_gateway_id   = azurerm_local_network_gateway.gpssa[each.key].id
   shared_key                 = var.vpn_shared_key
   tags                       = var.tags
+
+  ipsec_policy {
+    ike_encryption   = "AES256"
+    ike_integrity    = "SHA256"
+    dh_group         = "DHGroup14"
+    ipsec_encryption = "AES256"
+    ipsec_integrity  = "SHA256"
+    pfs_group        = "PFS14"
+    sa_lifetime      = 27000
+    sa_datasize      = 102400000
+  }
 }

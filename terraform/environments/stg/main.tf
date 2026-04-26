@@ -100,7 +100,7 @@ resource "azurerm_route_table" "spoke" {
   name                          = "rt-${var.prefix}-${var.environment}"
   location                      = var.location
   resource_group_name           = module.network.resource_group_name
-  disable_bgp_route_propagation = true
+  bgp_route_propagation_enabled = false
 
   route {
     name                   = "to-firewall"

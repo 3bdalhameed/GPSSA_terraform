@@ -15,16 +15,16 @@ variable "resource_group_name" {
 
 variable "subnet_id" {
   type        = string
-  description = "ID of the GatewaySubnet (must be named exactly 'GatewaySubnet', /27 minimum)"
+  description = "ID of GatewaySubnet (must be named exactly 'GatewaySubnet', /27 minimum)"
 }
 
 variable "sku" {
   type        = string
-  description = "VPN Gateway SKU: VpnGw1, VpnGw2, VpnGw3 (VpnGw1 is sufficient for POC)"
+  description = "VPN Gateway SKU — VpnGw1 is sufficient for testing"
   default     = "VpnGw1"
 }
 
 variable "tags" {
-  type        = map(string)
-  default     = {}
+  type    = map(string)
+  default = {}
 }

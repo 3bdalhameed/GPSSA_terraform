@@ -193,4 +193,5 @@ module "vpn_gateway" {
   tags                = local.tags
 }
 
-# App Gateway is provisioned separately once public IP quota is increased
+# App Gateway disabled — free subscription allows max 3 public IPs (Firewall + VPN GW = 2)
+# Re-enable after requesting a quota increase in Azure Portal

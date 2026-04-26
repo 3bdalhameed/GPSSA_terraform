@@ -25,7 +25,7 @@ output "firewall_public_ip" {
 
 output "hub_vnet_cidr" {
   value       = var.hub_vnet_cidr
-  description = "CIDR of the hub VNet — used by GPSSA-sim LNG to know Azure address space"
+  description = "CIDR of the hub VNet"
 }
 
 output "vpn_gateway_id" {
@@ -33,14 +33,9 @@ output "vpn_gateway_id" {
   description = "Resource ID of the Hub VPN Gateway"
 }
 
-output "vpn_gateway_name" {
-  value       = module.vpn_gateway.gateway_name
-  description = "Name of the Hub VPN Gateway"
-}
-
 output "vpn_gateway_public_ip" {
   value       = module.vpn_gateway.gateway_public_ip
-  description = "Public IP of the Hub VPN Gateway — used by GPSSA-sim as peer address"
+  description = "Public IP of the Hub VPN Gateway"
 }
 
-# App Gateway outputs will be added back once the module is re-enabled
+# App Gateway outputs removed — module disabled due to public IP quota limit

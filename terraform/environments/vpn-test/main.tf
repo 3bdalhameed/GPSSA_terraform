@@ -12,7 +12,7 @@ provider "azurerm" {
   features {}
 }
 
-# Pull the Hub VPN Gateway details provisioned by the shared environment
+# Pull Hub VPN Gateway details from the shared environment state
 data "terraform_remote_state" "shared" {
   backend = "local"
   config = {
@@ -26,66 +26,63 @@ locals {
     environment = "vpn-test"
   }
 
-  hub_gw_public_ip        = data.terraform_remote_state.shared.outputs.vpn_gateway_public_ip
-  hub_gw_id               = data.terraform_remote_state.shared.outputs.vpn_gateway_id
-  hub_resource_group_name = data.terraform_remote_state.shared.outputs.hub_resource_group_name
-  hub_vnet_cidr           = data.terraform_remote_state.shared.outputs.hub_vnet_cidr
+  hub_gw_id    = data.terraform_remote_state.shared.outputs.vpn_gateway_id
+  hub_gw_ip    = data.terraform_remote_state.shared.outputs.vpn_gateway_public_ip
+  hub_rg_name  = data.terraform_remote_state.shared.outputs.hub_resource_group_name
+  hub_vnet_cidr = data.terraform_remote_state.shared.outputs.hub_vnet_cidr
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
-# GPSSA-SIM RESOURCE GROUP
+# GPSSA-SIM RESOURCE GROUP + VNET (192.168.0.0/16)
+# Simulates the on-premises GPSSA network
 # ══════════════════════════════════════════════════════════════════════════════
 
-resource "azurerm_resource_group" "gpssa_sim" {
-  name     = "rg-vpntest-gpssa-sim-${var.prefix}"
+resource "azurerm_resource_group" "gpssa" {
+  name     = "rg-vpntest-gpssa"
   location = var.location
   tags     = local.tags
 }
 
-# ══════════════════════════════════════════════════════════════════════════════
-# GPSSA-SIM VNET  (192.168.0.0/16)
-# Represents the on-premises GPSSA network
-# ══════════════════════════════════════════════════════════════════════════════
-
-resource "azurerm_virtual_network" "gpssa_sim" {
-  name                = "vnet-vpntest-gpssa-sim"
-  address_space       = [var.gpssa_sim_vnet_cidr]
+resource "azurerm_virtual_network" "gpssa" {
+  name                = "vnet-vpntest-gpssa"
+  address_space       = ["192.168.0.0/16"]
   location            = var.location
-  resource_group_name = azurerm_resource_group.gpssa_sim.name
+  resource_group_name = azurerm_resource_group.gpssa.name
   tags                = local.tags
 }
 
+# GatewaySubnet — name is fixed by Azure
 resource "azurerm_subnet" "gpssa_gateway" {
   name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.gpssa_sim.name
-  virtual_network_name = azurerm_virtual_network.gpssa_sim.name
-  address_prefixes     = [var.gpssa_gateway_subnet_cidr]
+  resource_group_name  = azurerm_resource_group.gpssa.name
+  virtual_network_name = azurerm_virtual_network.gpssa.name
+  address_prefixes     = ["192.168.0.0/27"]
 }
 
+# Subnet for the test VM
 resource "azurerm_subnet" "gpssa_vm" {
   name                 = "subnet-vm"
-  resource_group_name  = azurerm_resource_group.gpssa_sim.name
-  virtual_network_name = azurerm_virtual_network.gpssa_sim.name
-  address_prefixes     = [var.gpssa_vm_subnet_cidr]
+  resource_group_name  = azurerm_resource_group.gpssa.name
+  virtual_network_name = azurerm_virtual_network.gpssa.name
+  address_prefixes     = ["192.168.1.0/24"]
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
-# GPSSA-SIM VPN GATEWAY
-# NOTE: takes 20-45 minutes to provision
+# GPSSA-SIM VPN GATEWAY  (NOTE: takes 20-45 min to provision)
 # ══════════════════════════════════════════════════════════════════════════════
 
 resource "azurerm_public_ip" "gpssa_gw" {
   name                = "pip-vpntest-gpssa-gw"
-  resource_group_name = azurerm_resource_group.gpssa_sim.name
+  resource_group_name = azurerm_resource_group.gpssa.name
   location            = var.location
   allocation_method   = "Static"
   sku                 = "Standard"
   tags                = local.tags
 }
 
-resource "azurerm_virtual_network_gateway" "gpssa_sim" {
-  name                = "vpngw-vpntest-gpssa-sim"
-  resource_group_name = azurerm_resource_group.gpssa_sim.name
+resource "azurerm_virtual_network_gateway" "gpssa" {
+  name                = "vpngw-vpntest-gpssa"
+  resource_group_name = azurerm_resource_group.gpssa.name
   location            = var.location
   type                = "Vpn"
   vpn_type            = "RouteBased"
@@ -104,76 +101,75 @@ resource "azurerm_virtual_network_gateway" "gpssa_sim" {
 
 # ══════════════════════════════════════════════════════════════════════════════
 # LOCAL NETWORK GATEWAYS
-# Hub side: "I know the GPSSA-sim network at this public IP + CIDR"
-# GPSSA side: "I know the Azure network at this public IP + CIDR"
+# Hub side  → knows GPSSA-sim public IP + 192.168.0.0/16
+# GPSSA side → knows Hub public IP + 10.0.0.0/8 (covers hub + all spokes)
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Created in the HUB resource group (alongside the Hub VPN GW)
-resource "azurerm_local_network_gateway" "hub_knows_gpssa" {
-  name                = "lng-vpntest-hub-to-gpssa"
-  resource_group_name = local.hub_resource_group_name
+resource "azurerm_local_network_gateway" "hub_to_gpssa" {
+  name                = "lng-hub-to-gpssa"
+  resource_group_name = local.hub_rg_name
   location            = var.location
   gateway_address     = azurerm_public_ip.gpssa_gw.ip_address
-  address_space       = [var.gpssa_sim_vnet_cidr]
+  address_space       = ["192.168.0.0/16"]
   tags                = local.tags
 }
 
-# Created in the GPSSA-sim resource group
-resource "azurerm_local_network_gateway" "gpssa_knows_hub" {
-  name                = "lng-vpntest-gpssa-to-hub"
-  resource_group_name = azurerm_resource_group.gpssa_sim.name
+resource "azurerm_local_network_gateway" "gpssa_to_hub" {
+  name                = "lng-gpssa-to-hub"
+  resource_group_name = azurerm_resource_group.gpssa.name
   location            = var.location
-  gateway_address     = local.hub_gw_public_ip
+  gateway_address     = local.hub_gw_ip
   address_space       = ["10.0.0.0/8"]
   tags                = local.tags
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
-# VPN CONNECTIONS  (same shared_key on both ends)
+# VPN CONNECTIONS  — same shared_key on both ends
 # ══════════════════════════════════════════════════════════════════════════════
 
 resource "azurerm_virtual_network_gateway_connection" "hub_to_gpssa" {
-  name                       = "conn-vpntest-hub-to-gpssa"
-  resource_group_name        = local.hub_resource_group_name
+  name                       = "conn-hub-to-gpssa"
+  resource_group_name        = local.hub_rg_name
   location                   = var.location
   type                       = "IPsec"
   virtual_network_gateway_id = local.hub_gw_id
-  local_network_gateway_id   = azurerm_local_network_gateway.hub_knows_gpssa.id
+  local_network_gateway_id   = azurerm_local_network_gateway.hub_to_gpssa.id
   shared_key                 = var.vpn_shared_key
   tags                       = local.tags
 }
 
 resource "azurerm_virtual_network_gateway_connection" "gpssa_to_hub" {
-  name                       = "conn-vpntest-gpssa-to-hub"
-  resource_group_name        = azurerm_resource_group.gpssa_sim.name
+  name                       = "conn-gpssa-to-hub"
+  resource_group_name        = azurerm_resource_group.gpssa.name
   location                   = var.location
   type                       = "IPsec"
-  virtual_network_gateway_id = azurerm_virtual_network_gateway.gpssa_sim.id
-  local_network_gateway_id   = azurerm_local_network_gateway.gpssa_knows_hub.id
+  virtual_network_gateway_id = azurerm_virtual_network_gateway.gpssa.id
+  local_network_gateway_id   = azurerm_local_network_gateway.gpssa_to_hub.id
   shared_key                 = var.vpn_shared_key
   tags                       = local.tags
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TEST VM — GPSSA-SIM SIDE
-# Has a public IP so you can SSH in and run ping/curl to the Azure spoke
+# Public IP so you can SSH in and run ping/curl to Azure spoke resources
 # ══════════════════════════════════════════════════════════════════════════════
 
-resource "azurerm_public_ip" "gpssa_vm" {
-  name                = "pip-vpntest-gpssa-vm"
-  resource_group_name = azurerm_resource_group.gpssa_sim.name
+resource "azurerm_public_ip" "vm" {
+  name                = "pip-vpntest-vm"
+  resource_group_name = azurerm_resource_group.gpssa.name
   location            = var.location
   allocation_method   = "Static"
   sku                 = "Standard"
   tags                = local.tags
 }
 
-resource "azurerm_network_security_group" "gpssa_vm" {
-  name                = "nsg-vpntest-gpssa-vm"
-  resource_group_name = azurerm_resource_group.gpssa_sim.name
+resource "azurerm_network_security_group" "vm" {
+  name                = "nsg-vpntest-vm"
+  resource_group_name = azurerm_resource_group.gpssa.name
   location            = var.location
   tags                = local.tags
 
+  # SSH from your laptop only
   security_rule {
     name                       = "allow-ssh"
     priority                   = 100
@@ -186,6 +182,7 @@ resource "azurerm_network_security_group" "gpssa_vm" {
     destination_address_prefix = "*"
   }
 
+  # Allow all traffic returning from Azure through the VPN tunnel
   security_rule {
     name                       = "allow-from-azure"
     priority                   = 110
@@ -199,9 +196,9 @@ resource "azurerm_network_security_group" "gpssa_vm" {
   }
 }
 
-resource "azurerm_network_interface" "gpssa_vm" {
-  name                = "nic-vpntest-gpssa-vm"
-  resource_group_name = azurerm_resource_group.gpssa_sim.name
+resource "azurerm_network_interface" "vm" {
+  name                = "nic-vpntest-vm"
+  resource_group_name = azurerm_resource_group.gpssa.name
   location            = var.location
   tags                = local.tags
 
@@ -209,23 +206,23 @@ resource "azurerm_network_interface" "gpssa_vm" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.gpssa_vm.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.gpssa_vm.id
+    public_ip_address_id          = azurerm_public_ip.vm.id
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "gpssa_vm" {
-  network_interface_id      = azurerm_network_interface.gpssa_vm.id
-  network_security_group_id = azurerm_network_security_group.gpssa_vm.id
+resource "azurerm_network_interface_security_group_association" "vm" {
+  network_interface_id      = azurerm_network_interface.vm.id
+  network_security_group_id = azurerm_network_security_group.vm.id
 }
 
-resource "azurerm_linux_virtual_machine" "gpssa_vm" {
+resource "azurerm_linux_virtual_machine" "vm" {
   name                            = "vm-vpntest-gpssa"
-  resource_group_name             = azurerm_resource_group.gpssa_sim.name
+  resource_group_name             = azurerm_resource_group.gpssa.name
   location                        = var.location
   size                            = "Standard_B1s"
   admin_username                  = var.vm_admin_username
   disable_password_authentication = true
-  network_interface_ids           = [azurerm_network_interface.gpssa_vm.id]
+  network_interface_ids           = [azurerm_network_interface.vm.id]
   tags                            = local.tags
 
   admin_ssh_key {

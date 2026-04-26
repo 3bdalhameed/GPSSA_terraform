@@ -84,8 +84,3 @@ variable "storage_replication_type" {
   description = "Storage replication type"
 }
 
-variable "enable_gateway_transit" {
-  type        = bool
-  description = "Set to true after the Hub VPN Gateway is provisioned to allow spoke traffic to flow through it"
-  default     = false
-}

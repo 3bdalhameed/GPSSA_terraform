@@ -38,7 +38,7 @@ variable "gateway_subnet_cidr" {
 
 variable "vpn_gateway_sku" {
   type        = string
-  description = "VPN Gateway SKU: VpnGw1 is fine for POC and production small workloads"
+  description = "VPN Gateway SKU"
   default     = "VpnGw1"
 }
 
@@ -47,7 +47,6 @@ variable "vpn_gateway_sku" {
 variable "app_gateway_subnet_cidr" {
   type        = string
   description = "CIDR for ApplicationGatewaySubnet — must be /24 or larger within hub_vnet_cidr"
-  default     = "10.0.2.0/24"
 }
 
 variable "app_gateway_sku_name" {

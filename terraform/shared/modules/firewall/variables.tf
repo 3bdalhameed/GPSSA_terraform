@@ -29,6 +29,11 @@ variable "sku_tier" {
   default     = "Standard"
 }
 
+variable "firewall_policy_id" {
+  type        = string
+  description = "ID of the firewall policy to attach to the firewall"
+}
+
 variable "tags" {
   type        = map(string)
   description = "Tags to apply to all resources"

@@ -13,55 +13,53 @@ variable "location" {
   description = "Azure region"
 }
 
-variable "hub_vnet_cidr" {
+variable "resource_group_name" {
   type        = string
-  description = "CIDR block for the hub VNet (e.g. 10.0.0.0/16)"
+  description = "Resource group to deploy the Application Gateway into"
 }
 
-variable "firewall_subnet_cidr" {
+variable "subnet_id" {
   type        = string
-  description = "CIDR for AzureFirewallSubnet — must be /26 or larger within hub_vnet_cidr"
+  description = "ID of the ApplicationGatewaySubnet (must be /24 or larger)"
 }
 
-variable "firewall_sku_tier" {
-  type        = string
-  description = "Azure Firewall SKU tier: Standard or Premium"
-  default     = "Standard"
-}
-
-# ── Application Gateway ────────────────────────────────────────────────────────
-
-variable "app_gateway_subnet_cidr" {
-  type        = string
-  description = "CIDR for ApplicationGatewaySubnet — must be /24 or larger within hub_vnet_cidr"
-}
-
-variable "app_gateway_sku_name" {
+variable "sku_name" {
   type        = string
   description = "Application Gateway SKU name: Standard_v2 or WAF_v2"
   default     = "Standard_v2"
 }
 
-variable "app_gateway_sku_tier" {
+variable "sku_tier" {
   type        = string
   description = "Application Gateway SKU tier: Standard_v2 or WAF_v2"
   default     = "Standard_v2"
 }
 
-variable "app_gateway_capacity" {
+variable "capacity" {
   type        = number
-  description = "Number of Application Gateway instances"
+  description = "Number of Application Gateway instances (min 1)"
   default     = 2
 }
 
-variable "app_gateway_backends" {
+variable "tags" {
+  type        = map(string)
+  description = "Tags to apply to all resources"
+  default     = {}
+}
+
+variable "backends" {
   type = map(object({
     ip_addresses = list(string)
     fqdns        = list(string)
     hostname     = string
     priority     = number
   }))
-  description = "Backend pool config keyed by environment name. Fill in ip_addresses/fqdns after spoke AKS services are provisioned."
+  description = <<-EOT
+    Backend pool config keyed by environment name (e.g. prod, stg, dev).
+    ip_addresses / fqdns   — AKS service IPs or FQDNs (fill in after spokes are provisioned).
+    hostname               — Host header used to route to this pool (host-based listener).
+    priority               — Unique routing-rule priority (100, 200, 300 …).
+  EOT
   default = {
     prod = {
       ip_addresses = []

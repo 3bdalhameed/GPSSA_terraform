@@ -41,6 +41,14 @@ resource "azurerm_subnet" "firewall" {
   address_prefixes     = [var.firewall_subnet_cidr]
 }
 
+# Application Gateway requires a dedicated subnet named exactly "ApplicationGatewaySubnet" with a /24 minimum
+resource "azurerm_subnet" "app_gateway" {
+  name                 = "ApplicationGatewaySubnet"
+  resource_group_name  = azurerm_resource_group.hub.name
+  virtual_network_name = azurerm_virtual_network.hub.name
+  address_prefixes     = [var.app_gateway_subnet_cidr]
+}
+
 # ── Firewall Policy ────────────────────────────────────────────────────────────
 
 resource "azurerm_firewall_policy" "main" {
@@ -170,5 +178,21 @@ module "firewall" {
   firewall_subnet_id  = azurerm_subnet.firewall.id
   firewall_policy_id  = azurerm_firewall_policy.main.id
   sku_tier            = var.firewall_sku_tier
+  tags                = local.tags
+}
+
+# ── Application Gateway ────────────────────────────────────────────────────────
+
+module "app_gateway" {
+  source              = "../../shared/modules/app_gateway"
+  prefix              = var.prefix
+  project             = var.project
+  location            = var.location
+  resource_group_name = azurerm_resource_group.hub.name
+  subnet_id           = azurerm_subnet.app_gateway.id
+  sku_name            = var.app_gateway_sku_name
+  sku_tier            = var.app_gateway_sku_tier
+  capacity            = var.app_gateway_capacity
+  backends            = var.app_gateway_backends
   tags                = local.tags
 }

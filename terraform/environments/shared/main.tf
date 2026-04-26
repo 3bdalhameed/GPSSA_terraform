@@ -49,6 +49,14 @@ resource "azurerm_subnet" "app_gateway" {
   address_prefixes     = [var.app_gateway_subnet_cidr]
 }
 
+# VPN Gateway requires a subnet named exactly "GatewaySubnet" with a /27 minimum
+resource "azurerm_subnet" "gateway" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.hub.name
+  virtual_network_name = azurerm_virtual_network.hub.name
+  address_prefixes     = [var.gateway_subnet_cidr]
+}
+
 # ── Firewall Policy ────────────────────────────────────────────────────────────
 
 resource "azurerm_firewall_policy" "main" {
@@ -178,6 +186,18 @@ module "firewall" {
   firewall_subnet_id  = azurerm_subnet.firewall.id
   firewall_policy_id  = azurerm_firewall_policy.main.id
   sku_tier            = var.firewall_sku_tier
+  tags                = local.tags
+}
+
+# ── VPN Gateway ───────────────────────────────────────────────────────────────
+
+module "vpn_gateway" {
+  source              = "../../shared/modules/vpn_gateway"
+  prefix              = var.prefix
+  location            = var.location
+  resource_group_name = azurerm_resource_group.hub.name
+  subnet_id           = azurerm_subnet.gateway.id
+  sku                 = var.vpn_gateway_sku
   tags                = local.tags
 }
 

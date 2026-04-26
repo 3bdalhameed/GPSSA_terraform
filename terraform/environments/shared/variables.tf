@@ -29,6 +29,19 @@ variable "firewall_sku_tier" {
   default     = "Standard"
 }
 
+# ── VPN Gateway ───────────────────────────────────────────────────────────────
+
+variable "gateway_subnet_cidr" {
+  type        = string
+  description = "CIDR for GatewaySubnet — must be /27 or larger within hub_vnet_cidr"
+}
+
+variable "vpn_gateway_sku" {
+  type        = string
+  description = "VPN Gateway SKU: VpnGw1 is fine for POC and production small workloads"
+  default     = "VpnGw1"
+}
+
 # ── Application Gateway ────────────────────────────────────────────────────────
 
 variable "app_gateway_subnet_cidr" {

@@ -82,7 +82,7 @@ resource "azurerm_virtual_network_peering" "spoke_to_hub" {
   virtual_network_name      = module.network.vnet_name
   remote_virtual_network_id = data.terraform_remote_state.shared.outputs.hub_vnet_id
   allow_forwarded_traffic   = true
-  use_remote_gateways       = false
+  use_remote_gateways       = var.enable_gateway_transit
 }
 
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
@@ -91,7 +91,7 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
   virtual_network_name      = data.terraform_remote_state.shared.outputs.hub_vnet_name
   remote_virtual_network_id = module.network.vnet_id
   allow_forwarded_traffic   = true
-  allow_gateway_transit     = false
+  allow_gateway_transit     = var.enable_gateway_transit
 }
 
 # ── Route table: force all spoke traffic through the firewall ─────────────────

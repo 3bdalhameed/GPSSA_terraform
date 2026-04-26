@@ -41,14 +41,6 @@ resource "azurerm_subnet" "firewall" {
   address_prefixes     = [var.firewall_subnet_cidr]
 }
 
-# Application Gateway requires a dedicated subnet named exactly "ApplicationGatewaySubnet" with a /24 minimum
-resource "azurerm_subnet" "app_gateway" {
-  name                 = "ApplicationGatewaySubnet"
-  resource_group_name  = azurerm_resource_group.hub.name
-  virtual_network_name = azurerm_virtual_network.hub.name
-  address_prefixes     = [var.app_gateway_subnet_cidr]
-}
-
 # VPN Gateway requires a subnet named exactly "GatewaySubnet" with a /27 minimum
 resource "azurerm_subnet" "gateway" {
   name                 = "GatewaySubnet"
@@ -201,18 +193,4 @@ module "vpn_gateway" {
   tags                = local.tags
 }
 
-# ── Application Gateway ────────────────────────────────────────────────────────
-
-module "app_gateway" {
-  source              = "../../shared/modules/app_gateway"
-  prefix              = var.prefix
-  project             = var.project
-  location            = var.location
-  resource_group_name = azurerm_resource_group.hub.name
-  subnet_id           = azurerm_subnet.app_gateway.id
-  sku_name            = var.app_gateway_sku_name
-  sku_tier            = var.app_gateway_sku_tier
-  capacity            = var.app_gateway_capacity
-  backends            = var.app_gateway_backends
-  tags                = local.tags
-}
+# App Gateway is provisioned separately once public IP quota is increased

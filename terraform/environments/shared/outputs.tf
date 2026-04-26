@@ -43,17 +43,4 @@ output "vpn_gateway_public_ip" {
   description = "Public IP of the Hub VPN Gateway — used by GPSSA-sim as peer address"
 }
 
-output "app_gateway_id" {
-  value       = module.app_gateway.app_gateway_id
-  description = "ID of the Application Gateway"
-}
-
-output "app_gateway_name" {
-  value       = module.app_gateway.app_gateway_name
-  description = "Name of the Application Gateway"
-}
-
-output "app_gateway_public_ip" {
-  value       = module.app_gateway.app_gateway_public_ip
-  description = "Public IP of the Application Gateway"
-}
+# App Gateway outputs will be added back once the module is re-enabled

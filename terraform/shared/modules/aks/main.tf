@@ -28,6 +28,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
     dns_service_ip    = "10.0.0.10"
   }
 
+  oidc_issuer_enabled               = true
   role_based_access_control_enabled = true
 
   identity {

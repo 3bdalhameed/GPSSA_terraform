@@ -1,5 +1,9 @@
+locals {
+  rg_name = coalesce(var.rg_name_override, "rg-aks-${var.prefix}-${var.environment}-${var.location}")
+}
+
 resource "azurerm_resource_group" "aks" {
-  name     = "rg-aks-${var.prefix}-${var.environment}-${var.location}"
+  name     = local.rg_name
   location = var.location
   tags = {
     environment = var.environment
@@ -33,10 +37,19 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 
   oidc_issuer_enabled               = true
+  workload_identity_enabled         = true
   role_based_access_control_enabled = true
 
   identity {
     type = "SystemAssigned"
+  }
+
+  dynamic "key_vault_secrets_provider" {
+    for_each = var.enable_key_vault_secrets_provider ? [1] : []
+    content {
+      secret_rotation_enabled  = true
+      secret_rotation_interval = "2m"
+    }
   }
 
   tags = {

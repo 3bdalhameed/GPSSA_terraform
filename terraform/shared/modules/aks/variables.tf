@@ -1,3 +1,9 @@
+variable "rg_name_override" {
+  type        = string
+  default     = null
+  description = "Override the AKS resource group name. Defaults to rg-aks-{prefix}-{environment}-{location}"
+}
+
 variable "prefix" {
   type        = string
   description = "The prefix which should be used for all resources"
@@ -68,4 +74,10 @@ variable "subnet_aks_system_id" {
 variable "subnet_aks_app_id" {
   type        = string
   description = "Subnet ID from network module for app node pool"
+}
+
+variable "enable_key_vault_secrets_provider" {
+  type        = bool
+  default     = false
+  description = "Enable the Key Vault Secrets Provider addon (required for CSI secret store)"
 }

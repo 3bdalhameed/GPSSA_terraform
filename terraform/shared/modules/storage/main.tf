@@ -1,5 +1,9 @@
+locals {
+  rg_name = coalesce(var.rg_name_override, "rg-storage-${var.prefix}-${var.environment}-${var.location}")
+}
+
 resource "azurerm_resource_group" "storage" {
-  name     = "rg-storage-${var.prefix}-${var.environment}-${var.location}"
+  name     = local.rg_name
   location = var.location
   tags = {
     environment = var.environment

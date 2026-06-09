@@ -5,22 +5,27 @@ output "resource_group_network" {
 
 output "vnet_id" {
   value       = azurerm_virtual_network.vnet.id
-  description = "Spoke VNet ID"
+  description = "STG spoke VNet ID"
 }
 
 output "vnet_name" {
   value       = azurerm_virtual_network.vnet.name
-  description = "Spoke VNet name"
+  description = "STG spoke VNet name"
 }
 
 output "subnet_aks_sys_id" {
   value       = azurerm_subnet.aks_sys.id
-  description = "AKS system node subnet ID"
+  description = "snet-eip-stg-aks-sys ID (10.15.250.0/26)"
 }
 
-output "subnet_aks_app_id" {
-  value       = azurerm_subnet.aks_app.id
-  description = "AKS app node subnet ID"
+output "subnet_aks_app01_id" {
+  value       = azurerm_subnet.aks_app01.id
+  description = "snet-eip-stg-aks-app01 ID (10.15.250.64/26)"
+}
+
+output "subnet_aks_app02_id" {
+  value       = azurerm_subnet.aks_app02.id
+  description = "snet-eip-stg-aks-app02 ID (10.15.251.0/24)"
 }
 
 output "subnet_shared_id" {
@@ -28,39 +33,19 @@ output "subnet_shared_id" {
   description = "Shared/private-endpoint subnet ID"
 }
 
-output "aks_cluster_name" {
-  value       = module.aks.aks_cluster_name
-  description = "AKS cluster name"
-}
-
-output "kubelet_identity_object_id" {
-  value       = module.aks.kubelet_identity_object_id
-  description = "Object ID of aks-eip-stg-agentpool managed identity"
-}
-
-output "kubelet_identity_client_id" {
-  value       = module.aks.kubelet_identity_client_id
-  description = "Client ID of aks-eip-stg-agentpool (use for workload identity federation)"
-}
-
-output "key_vault_secrets_provider_object_id" {
-  value       = module.aks.key_vault_secrets_provider_object_id
-  description = "Object ID of azurekeyvaultsecretsprovider-aks-eip-stg identity"
-}
-
-output "acr_login_server" {
-  value       = data.azurerm_container_registry.shared.login_server
-  description = "Shared nonprod ACR login server"
+output "subnet_resv_id" {
+  value       = azurerm_subnet.resv.id
+  description = "Reserved subnet ID"
 }
 
 output "storage_account_name" {
   value       = module.storage.storage_account_name
-  description = "stg storage account name"
+  description = "STG storage account name"
 }
 
-output "private_endpoint_acr_ip" {
-  value       = azurerm_private_endpoint.acr.private_service_connection[0].private_ip_address
-  description = "Private IP of pe-eip-acr-stg"
+output "storage_account_id" {
+  value       = module.storage.storage_account_id
+  description = "STG storage account resource ID"
 }
 
 output "private_endpoint_storage_ip" {

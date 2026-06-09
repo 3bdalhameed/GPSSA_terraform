@@ -20,50 +20,32 @@ variable "location" {
 
 variable "vnet_cidr" {
   type        = string
-  description = "Spoke VNet CIDR — must not overlap with hub or dev (e.g. 10.20.0.0/16)"
+  description = "Spoke VNet CIDR — must cover all subnet ranges (10.15.250.0/23)"
 }
 
-# ── AKS ───────────────────────────────────────────────────────────────────────
-
-variable "aks_cluster_name" {
+variable "subnet_aks_sys_cidr" {
   type        = string
-  description = "AKS cluster name (e.g. aks-eip-stg)"
+  description = "CIDR for snet-eip-stg-aks-sys"
 }
 
-variable "aks_dns_prefix" {
+variable "subnet_aks_app01_cidr" {
   type        = string
-  description = "AKS DNS prefix"
+  description = "CIDR for snet-eip-stg-aks-app01"
 }
 
-variable "aks_node_count" {
-  type        = number
-  description = "Number of AKS system nodes"
-}
-
-variable "aks_vm_size" {
+variable "subnet_shared_cidr" {
   type        = string
-  description = "AKS system node VM size"
+  description = "CIDR for snet-eip-stg-shared (private endpoints)"
 }
 
-variable "kubernetes_version" {
+variable "subnet_resv_cidr" {
   type        = string
-  default     = null
-  description = "Kubernetes version (null = latest)"
+  description = "CIDR for snet-eip-stg-resv (reserved)"
 }
 
-variable "app_node_pool_name" {
+variable "subnet_aks_app02_cidr" {
   type        = string
-  description = "App node pool name"
-}
-
-variable "app_node_count" {
-  type        = number
-  description = "Number of app nodes"
-}
-
-variable "app_vm_size" {
-  type        = string
-  description = "VM size for app nodes"
+  description = "CIDR for snet-eip-stg-aks-app02"
 }
 
 # ── Storage ───────────────────────────────────────────────────────────────────
@@ -80,49 +62,8 @@ variable "storage_replication_type" {
 
 # ── Shared existing resources ─────────────────────────────────────────────────
 
-variable "acr_name" {
-  type        = string
-  description = "Name of the shared nonprod ACR (e.g. acreipnonprd5shr)"
-}
-
-variable "acr_resource_group_name" {
-  type        = string
-  description = "RG of the shared nonprod ACR — also where pe-eip-acr-stg will be created (e.g. rg-eip-nonprod-acr)"
-}
-
 variable "dns_zone_resource_group" {
   type        = string
   description = "RG that holds the existing private DNS zones (rg-eip-shared-network-hub)"
 }
 
-# ── Optional: populate once database/KV resources are created ─────────────────
-
-variable "postgres_server_id" {
-  type        = string
-  default     = null
-  description = "Resource ID of stg PostgreSQL Server — activates pe-eip-postgres-stg"
-}
-
-variable "postgres_resource_group_name" {
-  type        = string
-  default     = null
-  description = "RG where pe-eip-postgres-stg will be created (e.g. rg-eip-nonprod-sql)"
-}
-
-variable "sql_server_id" {
-  type        = string
-  default     = null
-  description = "Resource ID of the nonprod SQL Server — activates pe-eip-sql-stg"
-}
-
-variable "sql_resource_group_name" {
-  type        = string
-  default     = null
-  description = "RG where pe-eip-sql-stg will be created (e.g. rg-eip-nonprod-sql)"
-}
-
-variable "key_vault_id" {
-  type        = string
-  default     = null
-  description = "Resource ID of the Key Vault — activates Key Vault Secrets Officer role for CSI driver (e.g. kveipdev01 in rg-eip-nonprod-kv)"
-}

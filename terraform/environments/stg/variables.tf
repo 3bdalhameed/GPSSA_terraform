@@ -60,10 +60,20 @@ variable "storage_replication_type" {
   description = "Storage replication type (LRS/GRS/GZRS)"
 }
 
-# ── Shared existing resources ─────────────────────────────────────────────────
+# ── Hub references (read directly from Azure — no remote state needed) ─────────
 
-variable "dns_zone_resource_group" {
+variable "hub_resource_group_name" {
   type        = string
-  description = "RG that holds the existing private DNS zones (rg-eip-shared-network-hub)"
+  description = "Hub network resource group (rg-eip-shared-network-hub)"
+}
+
+variable "hub_vnet_name" {
+  type        = string
+  description = "Hub VNet name (eip-hub-vnet)"
+}
+
+variable "hub_firewall_name" {
+  type        = string
+  description = "Hub firewall name (fw-eip-hub)"
 }
 

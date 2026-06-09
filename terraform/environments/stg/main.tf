@@ -12,19 +12,22 @@ provider "azurerm" {
   features {}
 }
 
-data "terraform_remote_state" "shared" {
-  backend = "local"
-  config = {
-    path = "${path.module}/../shared/terraform.tfstate"
-  }
+# ── Hub resources — read directly from Azure (no remote state dependency) ──────
+
+data "azurerm_virtual_network" "hub" {
+  name                = var.hub_vnet_name
+  resource_group_name = var.hub_resource_group_name
 }
 
-# ── Existing resources referenced as data sources ──────────────────────────────
+data "azurerm_firewall" "hub" {
+  name                = var.hub_firewall_name
+  resource_group_name = var.hub_resource_group_name
+}
 
 # Storage blob DNS zone already exists in the hub RG — only add a VNet link for stg
 data "azurerm_private_dns_zone" "storage_blob" {
   name                = "privatelink.blob.core.windows.net"
-  resource_group_name = var.dns_zone_resource_group
+  resource_group_name = var.hub_resource_group_name
 }
 
 # ── Network resources (spoke) ──────────────────────────────────────────────────
@@ -105,7 +108,7 @@ resource "azurerm_route_table" "spoke" {
     name                   = "to-firewall"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = data.terraform_remote_state.shared.outputs.firewall_private_ip
+    next_hop_in_ip_address = data.azurerm_firewall.hub.ip_configuration[0].private_ip_address
   }
 }
 
@@ -130,26 +133,25 @@ resource "azurerm_virtual_network_peering" "spoke_to_hub" {
   name                      = "peer-${var.environment}-to-hub"
   resource_group_name       = azurerm_resource_group.network.name
   virtual_network_name      = azurerm_virtual_network.vnet.name
-  remote_virtual_network_id = data.terraform_remote_state.shared.outputs.hub_vnet_id
+  remote_virtual_network_id = data.azurerm_virtual_network.hub.id
   allow_forwarded_traffic   = true
   use_remote_gateways       = false
 }
 
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
   name                      = "peer-hub-to-${var.environment}"
-  resource_group_name       = data.terraform_remote_state.shared.outputs.hub_resource_group_name
-  virtual_network_name      = data.terraform_remote_state.shared.outputs.hub_vnet_name
+  resource_group_name       = var.hub_resource_group_name
+  virtual_network_name      = data.azurerm_virtual_network.hub.name
   remote_virtual_network_id = azurerm_virtual_network.vnet.id
   allow_forwarded_traffic   = true
   allow_gateway_transit     = false
 }
 
 # ── Private DNS Zone VNet link ─────────────────────────────────────────────────
-# Zone already exists in hub RG — only add a spoke VNet link so stg resolves storage PE
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage_blob_stg" {
   name                  = "link-${var.environment}-storage-blob"
-  resource_group_name   = var.dns_zone_resource_group
+  resource_group_name   = var.hub_resource_group_name
   private_dns_zone_name = data.azurerm_private_dns_zone.storage_blob.name
   virtual_network_id    = azurerm_virtual_network.vnet.id
   registration_enabled  = false

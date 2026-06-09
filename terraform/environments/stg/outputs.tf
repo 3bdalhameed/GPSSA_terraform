@@ -54,6 +54,6 @@ output "private_endpoint_storage_ip" {
 }
 
 output "firewall_private_ip" {
-  value       = data.terraform_remote_state.shared.outputs.firewall_private_ip
+  value       = data.azurerm_firewall.hub.ip_configuration[0].private_ip_address
   description = "Hub firewall private IP (next-hop for route table)"
 }

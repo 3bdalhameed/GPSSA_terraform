@@ -76,12 +76,12 @@ variable "stg_vnet_name" {
 
 variable "dev_resource_group_name" {
   type        = string
-  description = "DEV network resource group (rg-network-eip-dev-uaenorth)"
+  description = "DEV network resource group (rg-eip-dev-network-spoke)"
 }
 
 variable "dev_vnet_name" {
   type        = string
-  description = "DEV VNet name (eip-vnet)"
+  description = "DEV VNet name (eip-dev-vnet)"
 }
 
 # ── Hub references (read directly from Azure — no remote state needed) ─────────

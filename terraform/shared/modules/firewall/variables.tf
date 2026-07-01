@@ -3,6 +3,12 @@ variable "prefix" {
   description = "Resource prefix"
 }
 
+variable "name_override" {
+  type        = string
+  default     = null
+  description = "Override firewall name. Defaults to fw-{prefix}"
+}
+
 variable "project" {
   type        = string
   description = "Project name"

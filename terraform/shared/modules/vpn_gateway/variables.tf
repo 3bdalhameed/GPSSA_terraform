@@ -3,6 +3,12 @@ variable "prefix" {
   description = "Resource prefix"
 }
 
+variable "name_override" {
+  type        = string
+  default     = null
+  description = "Override VPN gateway name. Defaults to vpngw-{prefix}"
+}
+
 variable "location" {
   type        = string
   description = "Azure region"

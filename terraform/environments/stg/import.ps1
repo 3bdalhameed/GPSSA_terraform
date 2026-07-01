@@ -36,8 +36,8 @@ terraform import azurerm_virtual_network_peering.hub_to_spoke /subscriptions/$SU
 # Private DNS Zone VNet Link
 terraform import azurerm_private_dns_zone_virtual_network_link.storage_blob_stg /subscriptions/$SUB/resourceGroups/$RGHUB/providers/Microsoft.Network/privateDnsZones/privatelink.blob.core.windows.net/virtualNetworkLinks/link-stg-storage-blob
 
-# Storage Account
-terraform import module.storage.azurerm_storage_account.storage /subscriptions/$SUB/resourceGroups/$RGSTORAGE/providers/Microsoft.Storage/storageAccounts/eipstgstorage001
+# Storage Account (actual name in Azure: eipstgstoragofze — NOT eipstgstorage001 which is a duplicate)
+terraform import module.storage.azurerm_storage_account.storage /subscriptions/$SUB/resourceGroups/$RGSTORAGE/providers/Microsoft.Storage/storageAccounts/eipstgstoragofze
 
 # Private Endpoint
 terraform import azurerm_private_endpoint.storage /subscriptions/$SUB/resourceGroups/$RGSTORAGE/providers/Microsoft.Network/privateEndpoints/pe-eip-storage-stg

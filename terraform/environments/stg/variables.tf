@@ -60,6 +60,12 @@ variable "storage_replication_type" {
   description = "Storage replication type (LRS/GRS/GZRS)"
 }
 
+variable "storage_account_name_override" {
+  type        = string
+  default     = null
+  description = "Override storage account name to match the name already in Azure"
+}
+
 # ── Hub references (read directly from Azure — no remote state needed) ─────────
 
 variable "hub_resource_group_name" {

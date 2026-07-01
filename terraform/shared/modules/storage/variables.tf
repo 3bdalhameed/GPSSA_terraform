@@ -4,6 +4,12 @@ variable "rg_name_override" {
   description = "Override the storage resource group name. Defaults to rg-storage-{prefix}-{environment}-{location}"
 }
 
+variable "storage_account_name_override" {
+  type        = string
+  default     = null
+  description = "Override the storage account name. Defaults to {prefix}{environment}storage001"
+}
+
 variable "prefix" {
   type        = string
   description = "The prefix which should be used for all resources"

@@ -1,3 +1,7 @@
+locals {
+  gw_name = coalesce(var.name_override, "vpngw-${var.prefix}")
+}
+
 resource "azurerm_public_ip" "gw" {
   name                = "pip-vpngw-${var.prefix}"
   resource_group_name = var.resource_group_name
@@ -10,7 +14,7 @@ resource "azurerm_public_ip" "gw" {
 
 # NOTE: provisioning takes 20-45 minutes in Azure
 resource "azurerm_virtual_network_gateway" "gw" {
-  name                = "vpngw-${var.prefix}"
+  name                = local.gw_name
   resource_group_name = var.resource_group_name
   location            = var.location
   type                = "Vpn"

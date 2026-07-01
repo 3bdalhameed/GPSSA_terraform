@@ -18,6 +18,32 @@ variable "hub_vnet_cidr" {
   description = "CIDR block for the hub VNet (e.g. 10.0.0.0/16)"
 }
 
+# ── Name overrides (set to actual Azure names when they differ from the generated pattern) ──
+
+variable "hub_rg_name_override" {
+  type        = string
+  default     = null
+  description = "Override hub resource group name"
+}
+
+variable "hub_vnet_name_override" {
+  type        = string
+  default     = null
+  description = "Override hub VNet name"
+}
+
+variable "hub_firewall_name_override" {
+  type        = string
+  default     = null
+  description = "Override hub firewall name"
+}
+
+variable "hub_vpngw_name_override" {
+  type        = string
+  default     = null
+  description = "Override hub VPN gateway name"
+}
+
 variable "firewall_subnet_cidr" {
   type        = string
   description = "CIDR for AzureFirewallSubnet — must be /26 or larger within hub_vnet_cidr"

@@ -48,8 +48,8 @@ terraform import azurerm_virtual_network_peering.dev_to_prd /subscriptions/$SUB/
 # Private DNS Zone VNet Link
 terraform import azurerm_private_dns_zone_virtual_network_link.storage_blob_prd /subscriptions/$SUB/resourceGroups/$RGHUB/providers/Microsoft.Network/privateDnsZones/privatelink.blob.core.windows.net/virtualNetworkLinks/link-prd-storage-blob
 
-# Storage Account
-terraform import module.storage.azurerm_storage_account.storage /subscriptions/$SUB/resourceGroups/$RGSTORAGE/providers/Microsoft.Storage/storageAccounts/eipprdstorage001
+# Storage Account (actual name in Azure: steipprdlplb)
+terraform import module.storage.azurerm_storage_account.storage /subscriptions/$SUB/resourceGroups/$RGSTORAGE/providers/Microsoft.Storage/storageAccounts/steipprdlplb
 
 # Private Endpoint
 terraform import azurerm_private_endpoint.storage /subscriptions/$SUB/resourceGroups/$RGSTORAGE/providers/Microsoft.Network/privateEndpoints/pe-eip-storage-prd

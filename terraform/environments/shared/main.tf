@@ -20,13 +20,14 @@ locals {
 }
 
 resource "azurerm_resource_group" "hub" {
-  name     = "rg-hub-${var.prefix}-${var.location}"
+  name     = coalesce(var.hub_rg_name_override, "rg-hub-${var.prefix}-${var.location}")
   location = var.location
   tags     = local.tags
+  lifecycle { ignore_changes = [tags] }
 }
 
 resource "azurerm_virtual_network" "hub" {
-  name                = "vnet-hub-${var.prefix}"
+  name                = coalesce(var.hub_vnet_name_override, "vnet-hub-${var.prefix}")
   address_space       = [var.hub_vnet_cidr]
   location            = azurerm_resource_group.hub.location
   resource_group_name = azurerm_resource_group.hub.name
@@ -178,6 +179,7 @@ module "firewall" {
   firewall_subnet_id  = azurerm_subnet.firewall.id
   firewall_policy_id  = azurerm_firewall_policy.main.id
   sku_tier            = var.firewall_sku_tier
+  name_override       = var.hub_firewall_name_override
   tags                = local.tags
 }
 
@@ -190,6 +192,7 @@ module "vpn_gateway" {
   resource_group_name = azurerm_resource_group.hub.name
   subnet_id           = azurerm_subnet.gateway.id
   sku                 = var.vpn_gateway_sku
+  name_override       = var.hub_vpngw_name_override
   tags                = local.tags
 }
 

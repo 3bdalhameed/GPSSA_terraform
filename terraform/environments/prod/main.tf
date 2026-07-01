@@ -97,14 +97,15 @@ resource "azurerm_subnet" "aks_app01" {
 # ── Storage ───────────────────────────────────────────────────────────────────
 
 module "storage" {
-  source                   = "../../shared/modules/storage"
-  prefix                   = var.prefix
-  project                  = var.project
-  environment              = var.environment
-  location                 = var.location
-  rg_name_override         = "rg-${var.prefix}-${var.environment}-storage"
-  storage_account_tier     = var.storage_account_tier
-  storage_replication_type = var.storage_replication_type
+  source                        = "../../shared/modules/storage"
+  prefix                        = var.prefix
+  project                       = var.project
+  environment                   = var.environment
+  location                      = var.location
+  rg_name_override              = "rg-${var.prefix}-${var.environment}-storage"
+  storage_account_name_override = var.storage_account_name_override
+  storage_account_tier          = var.storage_account_tier
+  storage_replication_type      = var.storage_replication_type
 }
 
 # ── Route table: force spoke traffic through hub firewall ─────────────────────

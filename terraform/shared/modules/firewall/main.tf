@@ -1,3 +1,7 @@
+locals {
+  fw_name = coalesce(var.name_override, "fw-${var.prefix}")
+}
+
 resource "azurerm_public_ip" "fw" {
   name                = "pip-fw-${var.prefix}"
   resource_group_name = var.resource_group_name
@@ -8,7 +12,7 @@ resource "azurerm_public_ip" "fw" {
 }
 
 resource "azurerm_firewall" "fw" {
-  name                = "fw-${var.prefix}"
+  name                = local.fw_name
   location            = var.location
   resource_group_name = var.resource_group_name
   sku_name            = "AZFW_VNet"

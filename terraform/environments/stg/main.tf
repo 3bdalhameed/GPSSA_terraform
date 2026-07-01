@@ -36,6 +36,7 @@ resource "azurerm_resource_group" "network" {
   name     = "rg-${var.prefix}-${var.environment}-network-spoke"
   location = var.location
   tags     = { environment = var.environment, project = var.project }
+  lifecycle { ignore_changes = [tags] }
 }
 
 resource "azurerm_virtual_network" "vnet" {
@@ -51,6 +52,7 @@ resource "azurerm_subnet" "aks_sys" {
   resource_group_name  = azurerm_resource_group.network.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet_aks_sys_cidr]
+  service_endpoints    = ["Microsoft.KeyVault"]
 }
 
 resource "azurerm_subnet" "aks_app01" {
@@ -58,6 +60,7 @@ resource "azurerm_subnet" "aks_app01" {
   resource_group_name  = azurerm_resource_group.network.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet_aks_app01_cidr]
+  service_endpoints    = ["Microsoft.KeyVault"]
 }
 
 # PE network policies disabled so private endpoint NICs bypass the route table
@@ -67,6 +70,7 @@ resource "azurerm_subnet" "shared" {
   virtual_network_name              = azurerm_virtual_network.vnet.name
   address_prefixes                  = [var.subnet_shared_cidr]
   private_endpoint_network_policies = "Disabled"
+  service_endpoints                 = ["Microsoft.KeyVault"]
 }
 
 resource "azurerm_subnet" "resv" {
@@ -74,6 +78,7 @@ resource "azurerm_subnet" "resv" {
   resource_group_name  = azurerm_resource_group.network.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet_resv_cidr]
+  service_endpoints    = ["Microsoft.KeyVault"]
 }
 
 resource "azurerm_subnet" "aks_app02" {
@@ -81,19 +86,21 @@ resource "azurerm_subnet" "aks_app02" {
   resource_group_name  = azurerm_resource_group.network.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = [var.subnet_aks_app02_cidr]
+  service_endpoints    = ["Microsoft.KeyVault"]
 }
 
 # ── Storage ───────────────────────────────────────────────────────────────────
 
 module "storage" {
-  source                   = "../../shared/modules/storage"
-  prefix                   = var.prefix
-  project                  = var.project
-  environment              = var.environment
-  location                 = var.location
-  rg_name_override         = "rg-${var.prefix}-${var.environment}-storage"
-  storage_account_tier     = var.storage_account_tier
-  storage_replication_type = var.storage_replication_type
+  source                        = "../../shared/modules/storage"
+  prefix                        = var.prefix
+  project                       = var.project
+  environment                   = var.environment
+  location                      = var.location
+  rg_name_override              = "rg-${var.prefix}-${var.environment}-storage"
+  storage_account_name_override = var.storage_account_name_override
+  storage_account_tier          = var.storage_account_tier
+  storage_replication_type      = var.storage_replication_type
 }
 
 # ── Route table: force spoke traffic through hub firewall ─────────────────────
@@ -102,7 +109,7 @@ resource "azurerm_route_table" "spoke" {
   name                          = "rt-${var.prefix}-${var.environment}"
   location                      = var.location
   resource_group_name           = azurerm_resource_group.network.name
-  bgp_route_propagation_enabled = false
+  bgp_route_propagation_enabled = true
 
   route {
     name                   = "to-firewall"
@@ -173,7 +180,7 @@ resource "azurerm_private_endpoint" "storage" {
   }
 
   private_dns_zone_group {
-    name                 = "dns-group-storage-blob"
+    name                 = "default"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.storage_blob.id]
   }
 }

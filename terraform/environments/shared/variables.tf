@@ -18,6 +18,31 @@ variable "hub_vnet_cidr" {
   description = "CIDR block for the hub VNet (e.g. 10.0.0.0/16)"
 }
 
+# ── On-premises / client access ───────────────────────────────────────────────
+
+variable "onprem_address_spaces" {
+  type        = list(string)
+  description = "On-premises client subnet CIDRs allowed through the firewall to all spokes"
+}
+
+variable "dev_spoke_cidrs" {
+  type        = list(string)
+  description = "DEV spoke address space"
+  default     = ["10.15.240.0/23"]
+}
+
+variable "stg_spoke_cidrs" {
+  type        = list(string)
+  description = "STG spoke address space"
+  default     = ["10.15.250.0/23"]
+}
+
+variable "prd_spoke_cidrs" {
+  type        = list(string)
+  description = "PRD spoke address space"
+  default     = ["10.30.0.0/23"]
+}
+
 # ── Name overrides (set to actual Azure names when they differ from the generated pattern) ──
 
 variable "hub_rg_name_override" {

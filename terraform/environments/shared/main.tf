@@ -170,6 +170,44 @@ resource "azurerm_firewall_policy_rule_collection_group" "aks_egress" {
   }
 }
 
+# ── On-premises client access to all spoke environments ───────────────────────
+
+resource "azurerm_firewall_policy_rule_collection_group" "onprem_access" {
+  name               = "onprem-access"
+  firewall_policy_id = azurerm_firewall_policy.main.id
+  priority           = 200
+
+  network_rule_collection {
+    name     = "onprem-to-spokes"
+    priority = 100
+    action   = "Allow"
+
+    rule {
+      name                  = "onprem-to-dev"
+      protocols             = ["TCP", "UDP"]
+      source_addresses      = var.onprem_address_spaces
+      destination_addresses = var.dev_spoke_cidrs
+      destination_ports     = ["*"]
+    }
+
+    rule {
+      name                  = "onprem-to-stg"
+      protocols             = ["TCP", "UDP"]
+      source_addresses      = var.onprem_address_spaces
+      destination_addresses = var.stg_spoke_cidrs
+      destination_ports     = ["*"]
+    }
+
+    rule {
+      name                  = "onprem-to-prd"
+      protocols             = ["TCP", "UDP"]
+      source_addresses      = var.onprem_address_spaces
+      destination_addresses = var.prd_spoke_cidrs
+      destination_ports     = ["*"]
+    }
+  }
+}
+
 module "firewall" {
   source              = "../../shared/modules/firewall"
   prefix              = var.prefix
